@@ -1,7 +1,6 @@
 import streamlit as st
 from kubernetes import client, config
 
-
 # Function to load in-cluster Kubernetes config
 def load_incluster_config():
     try:
@@ -18,6 +17,20 @@ def list_all_pods():
     return pods.items
 
 
+# Function to display pods in the Streamlit app
+def display_pods(pods):
+    if pods:
+        st.subheader("Pods List")
+        for pod in pods:
+            st.write(
+                f"**Pod Name**: {pod.metadata.name}, "
+                f"**Namespace**: {pod.metadata.namespace}, "
+                f"**Pod IP**: {pod.status.pod_ip}"
+            )
+    else:
+        st.info("No pods found.")
+
+
 # Streamlit UI
 st.title("Kubernetes Pod Viewer")
 st.markdown("Displays all pods across all namespaces with their IPs.")
@@ -25,19 +38,19 @@ st.markdown("Displays all pods across all namespaces with their IPs.")
 # Load Kubernetes config
 load_incluster_config()
 
-# Button to trigger pod listing
-if st.button("List All Pods"):
+# Try to list pods when the app starts
+try:
+    initial_pods = list_all_pods()
+    st.info("Automatically listing all pods on startup...")
+    display_pods(initial_pods)
+except Exception as e:
+    st.error(f"Error fetching pods on startup: {e}")
+
+# Button to manually refresh pod list
+if st.button("Refresh Pods List"):
     try:
-        pods = list_all_pods()
-        if pods:
-            st.subheader("Pods List")
-            for pod in pods:
-                st.write(
-                    f"**Pod Name**: {pod.metadata.name}, "
-                    f"**Namespace**: {pod.metadata.namespace}, "
-                    f"**Pod IP**: {pod.status.pod_ip}"
-                )
-        else:
-            st.info("No pods found.")
+        st.info("Refreshing pod list...")
+        refreshed_pods = list_all_pods()
+        display_pods(refreshed_pods)
     except Exception as e:
-        st.error(f"Error fetching pods: {e}")
+        st.error(f"Error refreshing pods: {e}")
