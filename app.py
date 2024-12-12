@@ -36,7 +36,7 @@ def server(input, output, session):
     pods_reactive = reactive.Value([])
 
     # Load Kubernetes config on startup
-    config_status = load_incluster_config()
+    config_status_message = load_incluster_config()
 
     @reactive.Effect
     @reactive.event(input.refresh)
@@ -50,13 +50,13 @@ def server(input, output, session):
 
     # Render Kubernetes config load status
     @output
-    @reactive.Effect
+    @ui.render_text
     def config_status():
-        return config_status
+        return config_status_message
 
     # Render the list of pods
     @output
-    @reactive.Effect
+    @ui.render_ui
     def pods_list():
         pods = pods_reactive()
         if not pods:
