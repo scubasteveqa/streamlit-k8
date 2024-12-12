@@ -1,4 +1,4 @@
-from shiny import App, ui, reactive
+from shiny import App, ui, reactive, render
 from kubernetes import client, config
 
 # Function to load in-cluster Kubernetes config
@@ -50,13 +50,13 @@ def server(input, output, session):
 
     # Render Kubernetes config load status
     @output
-    @ui.render_text
+    @render.text
     def config_status():
         return config_status_message
 
     # Render the list of pods
     @output
-    @ui.render_ui
+    @render.ui
     def pods_list():
         pods = pods_reactive()
         if not pods:
