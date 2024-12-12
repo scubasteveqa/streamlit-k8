@@ -23,6 +23,7 @@ app_ui = ui.page_fluid(
     ui.h2("Kubernetes Pods Viewer"),
     ui.output_text_verbatim("config_status"),
     ui.input_action_button("refresh", "Refresh Pods"),
+    ui.output_text_verbatim("notification"),
     ui.output_ui("pods_list"),
 )
 
@@ -31,6 +32,9 @@ app_ui = ui.page_fluid(
 def server(input, output, session):
     # Reactive value to store the list of pods
     pods_reactive = reactive.Value([])
+
+    # Reactive value to store notification messages
+    notification_message = reactive.Value("")
 
     # Load Kubernetes config on startup
     config_status_message = load_incluster_config()
@@ -41,16 +45,22 @@ def server(input, output, session):
         try:
             pods = list_all_pods()
             pods_reactive.set(pods)
-            session.toast("Pods refreshed successfully!", duration=3, type="success")
+            notification_message.set("Pods refreshed successfully!")
         except Exception as e:
             pods_reactive.set([])
-            session.toast(f"Error refreshing pods: {e}", duration=5, type="danger")
+            notification_message.set(f"Error refreshing pods: {e}")
 
     # Render Kubernetes config load status
     @output
     @render.text
     def config_status():
         return config_status_message
+
+    # Render notification messages
+    @output
+    @render.text
+    def notification():
+        return notification_message()
 
     # Render the list of pods
     @output
